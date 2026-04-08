@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration status="WARN" packages="org.dev.openlogging.log4j2">
+
+    <Properties>
+        <Property name="appJsonTemplate">
+            {
+            "@timestamp":{"$resolver":"timestamp","pattern":{"format":"yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX"}},
+            "message":{"$resolver":"message","stringified":true},
+            "logger_name":{"$resolver":"logger","field":"name"},
+            "thread_name":{"$resolver":"thread","field":"name"},
+            "level":{"$resolver":"level","field":"name"},
+            "level_value":{"$resolver":"level","field":"name",
+            "keyValuePairs":[{"key":"TRACE","value":5000},{"key":"DEBUG","value":10000},
+            {"key":"INFO","value":20000},{"key":"WARN","value":30000},{"key":"ERROR","value":40000},{"key":"FATAL","value":50000}]},
+            "logtype":{"$resolver":"marker","field":"name"},
+            "$MDC":{"$resolver":"mdc","flatten":true}
+            }
+        </Property>
+    </Properties>
+    <Appenders>
+        <Console name="AppConsoleRaw" target="SYSTEM_OUT">
+            <JsonTemplateLayout eventTemplate="${appJsonTemplate}"/>
+        </Console>
+        <Rewrite name="AppConsole">
+            <AppenderRef ref="AppConsoleRaw"/>
+            <MaskingRewritePolicy defaultMarker="APPLICATION">
+                <MaskRule
+                        pattern ="\b(\d{13,19})\b"
+                        replacement ="*******"
+                />
+                <!-- (?i)(\b(?:username|password|birthdate)s?\b)(\s*)([:=])(\s*)(['"]?)([^,'"\]\)\}\s]+)(['"]?)-->
+                <MaskRule
+                        pattern ="(?i)(\b(?:username|password|birthdate)s?\b)(\s*)([:=])(\s*)(['&quot;]?)([^,'&quot;\]\)\}\s]+)(['&quot;]?)"
+
+                        replacement ="$1$2$3*********$5"
+                />
+            </MaskingRewritePolicy>
+        </Rewrite>
+
+        <Console name="LibConsoleRaw" target="SYSTEM_OUT">
+            <JsonTemplateLayout eventTemplate="${appJsonTemplate}"/>
+        </Console>
+        <Rewrite name="LibConsole">
+            <AppenderRef ref="LibConsoleRaw"/>
+            <SystemMarkerRewritePolicy/>
+        </Rewrite>
+    </Appenders>
+
+    <Loggers>
+        <!-- Application Logger - change "com.dev" to your own base package
+               Application logs -> AppConsole (masked)
+           -->
+        <Logger name="org.dev.openlogingdemo" level="INFO" additivity="false">
+            <AppenderRef ref="AppConsole"/>
+        </Logger>
+        <Logger name="org.springframework.boot.web" level="INFO" additivity="false">
+            <AppenderRef ref="LibConsole"/>
+        </Logger>
+
+        <Root level="info">
+            <AppenderRef ref="LibConsole"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

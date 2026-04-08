@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <turboFilter class="org.dev.openlogging.logback.SystemLogTypeFilter" />
+    <appender name ="CONSOLE" class ="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <mdc/>
+                <message/>
+                <arguments/>
+                <loggerName/>
+                <threadName/>
+                <logLevel/>
+                <logLevelValue/>
+                <pattern>
+                    <pattern>{"logtype":"%marker"}</pattern>
+                </pattern>
+                <stackTrace/>
+                <throwableRootCauseMessage/>
+                <throwableRootCauseClassName/>
+            </providers>
+            <decorator class="net.logstash.logback.mask.MaskingJsonGeneratorDecorator">
+                <!-- Pure regex Based-->
+                <!-- Any 13-19 digit run (PAN,Account Number)-->
+                <valueMask>
+                    <value>(\d{13,19})</value>
+                    <mask>************</mask>
+                </valueMask>
+                <!-- Sensitive key=value pairs -->
+                <valueMask>
+                    <value>(?i)\b(username|password|birthdate)(\s*[=:]\s*)(["']?)([^"',\s)]+)(["',\s)]|$)</value>
+                    <mask>$1$2$3*********$5</mask>
+                </valueMask>
+
+
+            </decorator>
+        </encoder>
+    </appender>
+    <appender name ="CONSOLE_LIB" class ="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp/>
+                <mdc/>
+                <message/>
+                <arguments/>
+                <loggerName/>
+                <threadName/>
+                <logLevel/>
+                <logLevelValue/>
+                <pattern>
+                    <pattern>{"logtype":"%marker"}</pattern>
+                </pattern>
+                <stackTrace/>
+                <throwableRootCauseMessage/>
+                <throwableRootCauseClassName/>
+            </providers>
+        </encoder>
+    </appender>
+    <!-- All non-application logs(framework/library) -> CONSOLE_LIB (unmasked) -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_LIB"/>
+    </root>
+    <!-- Application Logger - change "com.dev" to your own base package
+         Application logs -> Console (masked)
+     -->
+
+    <logger name="org.dev.openlogingdemo" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+</configuration>
